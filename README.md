@@ -63,3 +63,7 @@ cd /home/sites/{website name}/public_html/wp-content/themes/jupiter-child/*.php
 cd /home/sites/{website name}/public_html/wp-content/themes/jupiter-child/template-inc/*.php
 cd /home/sites/{website name}/public_html/wp-content/themes/jupiter-child/template-parts/*.php
 ```
+
+## WP CLI install:
+```wp core install --allow-root --url='dev_wp_sandbox.sgel6.dev.jellyfish.local' --admin_user='admin' --admin_password='J3llyf!sh' --admin_email='steven.gallagher@jellyfish.net' --title='Wordpress Sandbox'
+```
