@@ -90,6 +90,8 @@ $table_prefix  = Ini::get('dev_wp_sandbox.database.prefix');
  */
 define('WP_DEBUG', Ini::get('dev_wp_sandbox.environment.debug'));
 
+define( 'WP_MEMORY_LIMIT', '96M' );
+
 /* That's all, stop editing! Happy blogging. */
 
 /** Absolute path to the WordPress directory. */
