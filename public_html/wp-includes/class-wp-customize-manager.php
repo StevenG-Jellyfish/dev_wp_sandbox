@@ -485,6 +485,24 @@ final class WP_Customize_Manager {
 		}
 
 		/*
+		 * Clear incoming post data if the user lacks a CSRF token (nonce). Note that the customizer
+		 * application will inject the customize_preview_nonce query parameter into all Ajax requests.
+		 * For similar behavior elsewhere in WordPress, see rest_cookie_check_errors() which logs out
+		 * a user when a valid nonce isn't present.
+		 */
+		$has_post_data_nonce = (
+			check_ajax_referer( 'preview-customize_' . $this->get_stylesheet(), 'nonce', false )
+			||
+			check_ajax_referer( 'save-customize_' . $this->get_stylesheet(), 'nonce', false )
+			||
+			check_ajax_referer( 'preview-customize_' . $this->get_stylesheet(), 'customize_preview_nonce', false )
+		);
+		if ( ! current_user_can( 'customize' ) || ! $has_post_data_nonce ) {
+			unset( $_POST['customized'] );
+			unset( $_REQUEST['customized'] );
+		}
+
+		/*
 		 * If unauthenticated then require a valid changeset UUID to load the preview.
 		 * In this way, the UUID serves as a secret key. If the messenger channel is present,
 		 * then send unauthenticated code to prompt re-auth.
@@ -997,13 +1015,19 @@ final class WP_Customize_Manager {
 			wp_list_pluck( $posts, 'post_name' )
 		);
 
+		/*
+		 * Obtain all post types referenced in starter content to use in query.
+		 * This is needed because 'any' will not account for post types not yet registered.
+		 */
+		$post_types = array_filter( array_merge( array( 'attachment' ), wp_list_pluck( $posts, 'post_type' ) ) );
+
 		// Re-use auto-draft starter content posts referenced in the current customized state.
 		$existing_starter_content_posts = array();
 		if ( ! empty( $starter_content_auto_draft_post_ids ) ) {
 			$existing_posts_query = new WP_Query( array(
 				'post__in' => $starter_content_auto_draft_post_ids,
 				'post_status' => 'auto-draft',
-				'post_type' => 'any',
+				'post_type' => $post_types,
 				'posts_per_page' => -1,
 			) );
 			foreach ( $existing_posts_query->posts as $existing_post ) {
@@ -1571,6 +1595,7 @@ final class WP_Customize_Manager {
 		add_filter( 'wp_redirect', array( $this, 'add_state_query_params' ) );
 
 		wp_enqueue_script( 'customize-preview' );
+		wp_enqueue_style( 'customize-preview' );
 		add_action( 'wp_head', array( $this, 'customize_preview_loading_style' ) );
 		add_action( 'wp_head', array( $this, 'remove_frameless_preview_messenger_channel' ) );
 		add_action( 'wp_footer', array( $this, 'customize_preview_settings' ), 20 );
@@ -2487,6 +2512,14 @@ final class WP_Customize_Manager {
 		} elseif ( $args['date_gmt'] ) {
 			$post_array['post_date_gmt'] = $args['date_gmt'];
 			$post_array['post_date'] = get_date_from_gmt( $args['date_gmt'] );
+		} elseif ( $changeset_post_id && 'auto-draft' === get_post_status( $changeset_post_id ) ) {
+			/*
+			 * Keep bumping the date for the auto-draft whenever it is modified;
+			 * this extends its life, preserving it from garbage-collection via
+			 * wp_delete_auto_drafts().
+			 */
+			$post_array['post_date'] = current_time( 'mysql' );
+			$post_array['post_date_gmt'] = '';
 		}
 
 		$this->store_changeset_revision = $allow_revision;
@@ -3942,7 +3975,7 @@ final class WP_Customize_Manager {
 			'type'           => 'url',
 			'description'    => __( 'Or, enter a YouTube URL:' ),
 			'section'        => 'header_image',
-			'active_callback'=> 'is_front_page',
+			'active_callback' => 'is_header_video_active',
 		) );
 
 		$this->add_control( new WP_Customize_Header_Image_Control( $this ) );
