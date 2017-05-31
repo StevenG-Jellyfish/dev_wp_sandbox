@@ -1,0 +1,27 @@
+/*
+Theme Name:     Jellyfish Jupiter Child Theme
+Theme URI: 			http://themeforest.net/user/artbees
+Description:    Jellyfish's Child theme for the Jupiter theme 
+Author:         Jellyfish Reston - Steven Gallagher
+Author URI:			http://jellyfish.net
+Theme URI: 			http://themeforest.net/user/artbees
+Template:       jupiter
+Version:        1.0
+*/
+
+
+
+/*
+Sample : remove the comment and start adding your own custom CSS rules.
+
+body {
+	background-color:#fff;
+}
+
+*/
+
+#homepage-hero .vc_row-fluid img {
+	width: 100% !important;
+	height: auto !important;
+	max-height: 600px !important;
+}

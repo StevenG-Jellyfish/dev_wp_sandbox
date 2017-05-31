@@ -1,6 +1,9 @@
-// ========================================
-// Gulpfile
-// ========================================
+// ===========================++=============
+// Gulpfile for Jellyfish WP -SASS Framework
+// =============================++===========
+var theme_path        = '../public_html/wp-content/themes/casepoint/'
+var custom_php_path   = '../public_html/wp-content/themes/casepoint/custom-php/'
+
 
 // load plugins
 var gulp = require('gulp'),
